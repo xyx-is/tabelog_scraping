@@ -4,9 +4,11 @@
 食べログ3.8問題の検証用に作成したものです。
 
 ## 実行方法
-Rubyを使用します。
-gemなどでnokogiriを適宜インストールしてください。
+1. Rubyを使用します。gemなどでnokogiriを適宜インストールしてください。
 
+2. areas.csvから、スクレイピングするエリアを、tabelog_scraping.rbのareas配列に記載してください。
+
+3. Rubyを実行してください。
 ```
 ruby tabelog_scraping.rb > result.csv
 ```
