@@ -4,27 +4,41 @@
 食べログ3.8問題の検証用に作成したものです。
 
 ## 実行方法
-1. Rubyを使用します。gemなどでnokogiriを適宜インストールしてください。
+1. Rubyを使用します。gemなどでnokogiri, parallelを適宜インストールしてください。
 
 2. areas.csvから、スクレイピングするエリアを、tabelog_scraping.rbのareas配列に記載してください。
 
-3. Rubyを実行してください。
+3. MAX_THREADSに並列度を指定してください。
+
+4. Rubyを実行してください。
 ```
-ruby tabelog_scraping.rb > result.csv
+ruby tabelog_scraping.rb
 ```
 
+5. resultフォルダ以下に情報が出力されます。
+
+## 動作
+各エリアについて、そのエリアに1200件以上店があるかを確認し、1200件以下の場合は取得、1200件より多い場合はジャンルをより細かくして取得を試みます。
+居酒屋など、最もジャンルの分類が細かい状態で検索しても1200件以上ある場合は、result/no_subgenreフォルダ以下に、ランキング上位1200件目のスコアを記載し、さらに標準・ニューオープン順でも店の検索を試みます。
+最終的に、そのエリアの店一覧をresult/restaurants以下にCSV形式で出力します。
+
+4並列で、全国88万件ほどを取得するのに、約6時間ほどかかります。
+
 ## 収集する情報
+出力されるCSVの内容は、前から順に以下の通りです。
+
 * area: 検索対象のエリア
-* restaurant_url: レストランのURL
-* restaurant_id: レストランのID
-* restaurant_name: レストランの名前
-* restaurant_area: 最寄り駅情報
-* restaurant_genre: レストランのジャンル
-* restaurant_has_pr: PR文があるか
-* restaurant_rating: 点数
-* restaurant_review_count: 口コミ数
-* restaurant_dinner_budget: ディナー予算
-* restaurant_lunch_budget: ランチ予算
-* restaurant_has_holiday_notice: 休日欄に注意書きがあるか(非公式情報の場合注意書きがあるようです)
-* restaurant_search_words: 「個室」「完全禁煙」などの情報を"|"でつないだもの
-* restaurant_has_calendar: 予約用カレンダーが表示されているか
+* url: レストランのURL
+* id: レストランのID
+* name: レストランの名前
+* area: 最寄り駅情報
+* genre: レストランのジャンル
+* has_pr: PR文があるか
+* rating: 点数
+* review_count: 口コミ数
+* dinner_budget: ディナー予算
+* lunch_budget: ランチ予算
+* has_holiday_notice: 休日欄に注意書きがあるか(非公式情報の場合注意書きがあるようです)
+* search_words: 「個室」「完全禁煙」などの情報を"|"でつないだもの
+* img_count: 写真の数(5以上の場合は5になる)
+* has_calendar: 予約用カレンダーが表示されているか
