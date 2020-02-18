@@ -67,7 +67,7 @@ class ParseEachPage
       status_badge_entry = doc.css(".rdheader-title-data .rdheader-rstname-wrap .rst-status-badge-large")[0]
       status_badge = status_badge_entry && status_badge_entry.attribute("class").value.split(" ").select { |cls| cls.start_with? "rst-st-" }.first.slice("rst-st-".length..-1)
       {
-        restaurant_id: doc.css("#js-status-report").attribute("data-rst-id").value,
+        restaurant_id: doc.css(".js-bookmark[data-rst-id]").attribute("data-rst-id").value,
         restaurant_url: doc.css("meta[property='og:url']").attribute("content").value,
         status_badge: status_badge,
         name: doc.css(".rdheader-title-data .display-name a,.rdheader-title-data .display-name span")[0].text.strip,
