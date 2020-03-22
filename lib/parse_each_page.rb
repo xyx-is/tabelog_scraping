@@ -19,7 +19,7 @@ class ParseEachPage
     def process_restaurants_search_result(doc, (prefecture, area1, area2), source_url, scraped_at)
       {
         list_count: doc.css(".c-page-count .c-page-count__num").last.text.strip.to_i,
-        restaurants: doc.css("li.list-rst").map { |entry|
+        restaurants: doc.css(".list-rst").map { |entry|
           area_name, genre = entry.css("span.list-rst__area-genre")[0].text.strip.split("/").map(&:strip)
           rating_str = entry.css("span.list-rst__rating-val")[0]&.text&.strip || ""
           {
