@@ -20,8 +20,8 @@ class ParseEachPage
       {
         list_count: doc.css(".c-page-count .c-page-count__num").last.text.strip.to_i,
         restaurants: doc.css(".list-rst").map { |entry|
-          area_name, genre = entry.css("span.list-rst__area-genre")[0].text.strip.split("/").map(&:strip)
-          rating_str = entry.css("span.list-rst__rating-val")[0]&.text&.strip || ""
+          area_name, genre = entry.css(".list-rst__area-genre")[0].text.strip.split("/").map(&:strip)
+          rating_str = entry.css(".list-rst__rating-val")[0]&.text&.strip || ""
           {
             restaurant_id: entry.attribute("data-rst-id").value,
             prefecture: prefecture,
@@ -31,12 +31,12 @@ class ParseEachPage
             name: entry.css("a.list-rst__rst-name-target")[0].text.strip,
             area_name: area_name,
             genre: genre,
-            has_pr: entry.css("div.list-rst__pr").any?,
+            has_pr: entry.css(".list-rst__pr").any?,
             rating: rating_str,
             rating_int: rating_str_to_integer(rating_str),
             review_count: entry.css(".list-rst__rvw-count-num")[0].text.strip.to_i,
-            dinner_budget: entry.css("span.cpy-dinner-budget-val")[0].text.strip,
-            lunch_budget: entry.css("span.cpy-lunch-budget-val")[0].text.strip,
+            dinner_budget: entry.css(".cpy-dinner-budget-val")[0].text.strip,
+            lunch_budget: entry.css(".cpy-lunch-budget-val")[0].text.strip,
             has_holiday_notice: entry.css(".list-rst__holiday-notice").any?,
             search_words: entry.css("ul.list-rst__search-word li.list-rst__search-word-item").map(&:text).map(&:strip).join("|"),
             img_count: entry.css(".list-rst__rst-photo")[0].attribute("data-photo-set").value.split(",").select { |id_str| id_str.length > 0 }.length,
