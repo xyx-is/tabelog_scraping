@@ -147,6 +147,7 @@ module CreateDbTables
       dinner_rating_drink: { type: Type::TEXT, not_null: false },
       dinner_rating_details_count: { type: Type::INTEGER, not_null: false },
       dinner_rating_details_text: { type: Type::TEXT, not_null: false },
+      dinner_usedprice: { type: Type::TEXT, not_null: false },
 
       lunch_rating: { type: Type::TEXT, not_null: false },
       lunch_rating_int: { type: Type::INTEGER, not_null: false },
@@ -157,9 +158,11 @@ module CreateDbTables
       lunch_rating_drink: { type: Type::TEXT, not_null: false },
       lunch_rating_details_count: { type: Type::INTEGER, not_null: false },
       lunch_rating_details_text: { type: Type::TEXT, not_null: false },
-
-      dinner_usedprice: { type: Type::TEXT, not_null: false },
       lunch_usedprice: { type: Type::TEXT, not_null: false },
+
+      takeout_rating: { type: Type::TEXT, not_null: false },
+      takeout_rating_int: { type: Type::INTEGER, not_null: false },
+      takeout_usedprice: { type: Type::TEXT, not_null: false },
 
       visit_date: { type: Type::TEXT, not_null: false },
       has_title: { type: Type::BOOL, not_null: true },
