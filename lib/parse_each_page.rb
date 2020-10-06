@@ -93,19 +93,69 @@ class ParseEachPage
       }
     end
 
+    # for debug
+    # require_relative "lib/parse_each_page"
+    # require_relative "lib/read_url"
+    # require_relative "lib/url_util"
+    #
+    # read_url= ReadUrl.new(UrlUtil::RECAPTCHA_URL,
+    #   proc { |e, url| $stdout.print "INFO: redirect occurred to #{e.uri} from #{url}\n" },
+    #   proc { |e, url| error_io.print "ERROR: forbidden redirect occurred to #{e.uri} from #{url}\n"; raise },
+    #   proc { |e, url| error_io.print "ERROR: #{e.io.status.join(" ")} for #{url}\n"; raise })
+    #
+    #
+    # review_page_url = "https://tabelog.com/niigata/A1501/A150101/15017604/dtlrvwlst/"
+    # doc = read_url.read_html(review_page_url)
+    # review_page_result = ParseEachPage.process_reviews(doc, review_page_url, Time.now)
+    #
+    # pp review_page_result;nil
+
     def process_reviews(doc, source_url, scraped_at)
+      review_info_proc = proc { |lunch_or_dinner, review_info_list_item|
+        if review_info_list_item
+          rating = review_info_list_item.css(".c-rating-v2__val")[0].text.strip
+          detail_inner_items = review_info_list_item.css("ul.rvw-item__ratings-dtlscore li.rvw-item__ratings-dtlscore-dtl-inner")
+          if detail_inner_items.length != 1 then raise "There are #{detail_inner_items.length} (!= 1) detail_inner_items (ul.rvw-item__ratings-dtlscore li.rvw-item__ratings-dtlscore-dtl-inner)" end
+          detail_inner_item = detail_inner_items[0]
+          detail_scores = detail_inner_items.css("ul.rvw-item__score-detail li.rvw-item__score-detail-item strong.rvw-item__ratings-dtlscore-score")
+          if detail_scores.length != 5 then raise "There are #{detail_scores.length} (!= 5) detail_scores" end
+          {
+            :"#{lunch_or_dinner}_rating" => rating,
+            :"#{lunch_or_dinner}_rating_int" => rating_str_to_integer(rating),
+            :"#{lunch_or_dinner}_rating_food" => detail_scores[0].text.strip,
+            :"#{lunch_or_dinner}_rating_service" => detail_scores[1].text.strip,
+            :"#{lunch_or_dinner}_rating_mood" => detail_scores[2].text.strip,
+            :"#{lunch_or_dinner}_rating_cp" => detail_scores[3].text.strip,
+            :"#{lunch_or_dinner}_rating_drink" => detail_scores[4].text.strip,
+            :"#{lunch_or_dinner}_rating_details_count" => detail_scores.length,
+            :"#{lunch_or_dinner}_rating_details_text" => detail_inner_item.css("ul.rvw-item__score-detail")[0].text.strip.gsub(/\r|\n/, "").gsub(/\s+/, " "),
+            :"#{lunch_or_dinner}_usedprice" => detail_inner_item.css("span.rvw-item__ratings-dtlscore-score")[0].text.strip,
+          }
+        else
+          {
+            :"#{lunch_or_dinner}_rating" => nil,
+            :"#{lunch_or_dinner}_rating_int" => nil,
+            :"#{lunch_or_dinner}_rating_food" => nil,
+            :"#{lunch_or_dinner}_rating_service" => nil,
+            :"#{lunch_or_dinner}_rating_mood" => nil,
+            :"#{lunch_or_dinner}_rating_cp" => nil,
+            :"#{lunch_or_dinner}_rating_drink" => nil,
+            :"#{lunch_or_dinner}_rating_details_count" => nil,
+            :"#{lunch_or_dinner}_rating_details_text" => nil,
+            :"#{lunch_or_dinner}_usedprice" => nil,
+          }
+        end
+      }
+
       entries = doc.css(".rvw-item")
       {
         restaurant: process_single_restaurant_review_page_restaurant_info(doc, source_url, scraped_at),
         review_count: doc.css(".rstdtl-rvwlst .p-list-control .p-list-control__page-count .c-page-count .c-page-count__num strong")[2].text.strip.to_i,
         reviews: entries.map { |entry|
-          dinner_rating_item = entry.css(".rvw-item__rvw-info ul.rvw-item__ratings li.rvw-item__ratings-item .c-rating span.c-rating__time--dinner")[0]&.ancestors("li.rvw-item__ratings-item")&.[](0)
-          dinner_rating = if dinner_rating_item then dinner_rating_item.css(".c-rating__val")[0].text.strip else nil end
-          dinner_detail_scores = dinner_rating_item&.css("ul.rvw-item__ratings-dtlscore li strong.rvw-item__ratings-dtlscore-score")
-          lunch_rating_item = entry.css(".rvw-item__rvw-info ul.rvw-item__ratings li.rvw-item__ratings-item .c-rating span.c-rating__time--lunch")[0]&.ancestors("li.rvw-item__ratings-item")&.[](0)
-          lunch_rating = if lunch_rating_item then lunch_rating_item.css(".c-rating__val")[0].text.strip else nil end
-          lunch_detail_scores = lunch_rating_item&.css("ul.rvw-item__ratings-dtlscore li strong.rvw-item__ratings-dtlscore-score")
-          {
+          lunch_rating_item = entry.css(".rvw-item__rvw-info ul.rvw-item__ratings li.rvw-item__ratings-item .c-rating-v2 span.c-rating-v2__time--lunch")[0]&.ancestors("li.rvw-item__ratings-item")&.[](0)
+          dinner_rating_item = entry.css(".rvw-item__rvw-info ul.rvw-item__ratings li.rvw-item__ratings-item .c-rating-v2 span.c-rating-v2__time--dinner")[0]&.ancestors("li.rvw-item__ratings-item")&.[](0)
+          raise "neither lunch_rating_item nor dinner_rating_item exists" unless lunch_rating_item || dinner_rating_item
+          ({
             review_id: entry.css(".rvw-item__contents .rvw-item__visit-contents .rvw-item__showall-trigger[data-bookmark-id]")[0].attribute("data-bookmark-id").value,
             review_url: entry.attribute("data-detail-url").value.split("?")[0],
 
@@ -123,29 +173,6 @@ class ParseEachPage
 
             visit_count: entry.css(".rvw-item__rvw-info .rvw-item__visit-count .rvw-item__visit-count-num")[0].text.strip.to_i,
 
-            dinner_rating: dinner_rating,
-            dinner_rating_int: rating_str_to_integer(dinner_rating),
-            dinner_rating_food: if dinner_detail_scores then dinner_detail_scores[0].text.strip else nil end,
-            dinner_rating_service: if dinner_detail_scores then dinner_detail_scores[1].text.strip else nil end,
-            dinner_rating_mood: if dinner_detail_scores then dinner_detail_scores[2].text.strip else nil end,
-            dinner_rating_cp: if dinner_detail_scores then dinner_detail_scores[3].text.strip else nil end,
-            dinner_rating_drink: if dinner_detail_scores then dinner_detail_scores[4].text.strip else nil end,
-            dinner_rating_details_count: dinner_detail_scores&.length,
-            dinner_rating_details_text: if dinner_rating_item then dinner_rating_item.css("ul.rvw-item__ratings-dtlscore")[0].text.strip.gsub(/\r|\n/, "").gsub(/\s+/, " ") else nil end,
-
-            lunch_rating: lunch_rating,
-            lunch_rating_int: rating_str_to_integer(lunch_rating),
-            lunch_rating_food: if lunch_detail_scores then lunch_detail_scores[0].text.strip else nil end,
-            lunch_rating_service: if lunch_detail_scores then lunch_detail_scores[1].text.strip else nil end,
-            lunch_rating_mood: if lunch_detail_scores then lunch_detail_scores[2].text.strip else nil end,
-            lunch_rating_cp: if lunch_detail_scores then lunch_detail_scores[3].text.strip else nil end,
-            lunch_rating_drink: if lunch_detail_scores then lunch_detail_scores[4].text.strip else nil end,
-            lunch_rating_details_count: lunch_detail_scores&.length,
-            lunch_rating_details_text: if lunch_rating_item then lunch_rating_item.css("ul.rvw-item__ratings-dtlscore")[0].text.strip.gsub(/\r|\n/, "").gsub(/\s+/, " ") else nil end,
-
-            dinner_usedprice: entry.css("li.rvw-item__otherdata .rvw-item__usedprice dd.rvw-item__usedprice-data .c-rating__time--dinner+.rvw-item__usedprice-price")[0]&.text&.strip,
-            lunch_usedprice: entry.css("li.rvw-item__otherdata .rvw-item__usedprice dd.rvw-item__usedprice-data .c-rating__time--lunch+.rvw-item__usedprice-price")[0]&.text&.strip,
-
             visit_date: entry.css(".rvw-item__contents .rvw-item__visit-contents .rvw-item__date")[0]&.text&.strip,
             has_title: entry.css(".rvw-item__contents .rvw-item__visit-contents .rvw-item__title strong").any?,
             photo_count: entry.css(".rvw-item__contents .rvw-item__visit-contents .rvw-photo ul.rvw-photo__list li.rvw-photo__list-item a.js-show-bookmark-images .c-photo-more__num").any? ?
@@ -153,7 +180,7 @@ class ParseEachPage
               entry.css(".rvw-item__contents .rvw-item__visit-contents .rvw-photo ul.rvw-photo__list li.rvw-photo__list-item a.js-imagebox-trigger").length,
             title: entry.css(".rvw-item__contents .rvw-item__visit-contents .rvw-item__title strong")[0]&.text&.strip,
             comment: entry.css(".rvw-item__contents .rvw-item__visit-contents .rvw-item__rvw-comment")[0].text.strip,
-          }
+          }).merge(review_info_proc["lunch", lunch_rating_item]).merge(review_info_proc["dinner", dinner_rating_item])
         },
       }
     end
