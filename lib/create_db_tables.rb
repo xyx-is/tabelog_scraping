@@ -164,6 +164,14 @@ module CreateDbTables
       takeout_rating_int: { type: Type::INTEGER, not_null: false },
       takeout_usedprice: { type: Type::TEXT, not_null: false },
 
+      delivery_rating: { type: Type::TEXT, not_null: false },
+      delivery_rating_int: { type: Type::INTEGER, not_null: false },
+      delivery_usedprice: { type: Type::TEXT, not_null: false },
+
+      etc_rating: { type: Type::TEXT, not_null: false },
+      etc_rating_int: { type: Type::INTEGER, not_null: false },
+      etc_usedprice: { type: Type::TEXT, not_null: false },
+
       visit_date: { type: Type::TEXT, not_null: false },
       has_title: { type: Type::BOOL, not_null: true },
       photo_count: { type: Type::INTEGER, not_null: true },
