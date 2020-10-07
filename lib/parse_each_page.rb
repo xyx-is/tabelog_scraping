@@ -103,9 +103,10 @@ class ParseEachPage
     #   proc { |e, url| error_io.print "ERROR: forbidden redirect occurred to #{e.uri} from #{url}\n"; raise },
     #   proc { |e, url| error_io.print "ERROR: #{e.io.status.join(" ")} for #{url}\n"; raise })
     #
-    # [
-    #   "https://tabelog.com/saitama/A1103/A110301/11006122/dtlrvwlst/?srt=visit&lc=2",
-    # ].each{|url|
+    # %w{
+    #   https://tabelog.com/ibaraki/A0802/A080201/8012178/dtlrvwlst/?srt=visit&lc=2
+    #   https://tabelog.com/saitama/A1103/A110301/11006122/dtlrvwlst/?srt=visit&lc=2
+    # }.each{|url|
     #   doc = read_url.read_html(url)
     #   review_page_result = ParseEachPage.process_reviews(doc, url, Time.now)
     #   pp review_page_result;nil
@@ -153,23 +154,23 @@ class ParseEachPage
         end
       }
 
-      # takeout: "takeout"
-      review_info_proc_takeout = proc { |takeout, review_info_list_item|
+      # non_detail_sort: "takeout" | "delivery" | "etc"
+      review_info_proc_non_detail_sort = proc { |non_detail_sort, review_info_list_item|
         if review_info_list_item
           rating = review_info_list_item.css(".c-rating-v2__val")[0].text.strip
           detail_inner_items = review_info_list_item.css("ul.rvw-item__ratings-dtlscore > li")
           if detail_inner_items.length != 1 then raise "There are #{detail_inner_items.length} (!= 1) detail_inner_items (ul.rvw-item__ratings-dtlscore > li)" end
           detail_inner_item = detail_inner_items[0]
           {
-            :"#{takeout}_rating" => rating,
-            :"#{takeout}_rating_int" => rating_str_to_integer(rating),
-            :"#{takeout}_usedprice" => detail_inner_item.css("span.rvw-item__ratings-dtlscore-score")[0].text.strip,
+            :"#{non_detail_sort}_rating" => rating,
+            :"#{non_detail_sort}_rating_int" => rating_str_to_integer(rating),
+            :"#{non_detail_sort}_usedprice" => detail_inner_item.css("span.rvw-item__ratings-dtlscore-score")[0].text.strip,
           }
         else
           {
-            :"#{takeout}_rating" => nil,
-            :"#{takeout}_rating_int" => nil,
-            :"#{takeout}_usedprice" => nil,
+            :"#{non_detail_sort}_rating" => nil,
+            :"#{non_detail_sort}_rating_int" => nil,
+            :"#{non_detail_sort}_usedprice" => nil,
           }
         end
       }
@@ -182,7 +183,9 @@ class ParseEachPage
           lunch_rating_item = get_lunch_or_dinner_review_info_list_item[entry, "lunch"]
           dinner_rating_item = get_lunch_or_dinner_review_info_list_item[entry, "dinner"]
           takeout_rating_item = get_lunch_or_dinner_review_info_list_item[entry, "takeout"]
-          raise "neither lunch_rating_item nor dinner_rating_item nor takeout_rating_item exists" unless lunch_rating_item || dinner_rating_item || takeout_rating_item
+          delivery_rating_item = get_lunch_or_dinner_review_info_list_item[entry, "delivery"]
+          etc_rating_item = get_lunch_or_dinner_review_info_list_item[entry, "etc"]
+          raise "neither unch, dinner, takeout, delivery, nor etc rating item exists" unless lunch_rating_item || dinner_rating_item || takeout_rating_item || delivery_rating_item || etc_rating_item
           ({
             review_id: entry.css(".rvw-item__contents .rvw-item__visit-contents .rvw-item__showall-trigger[data-bookmark-id]")[0].attribute("data-bookmark-id").value,
             review_url: entry.attribute("data-detail-url").value.split("?")[0],
@@ -210,7 +213,9 @@ class ParseEachPage
             comment: entry.css(".rvw-item__contents .rvw-item__visit-contents .rvw-item__rvw-comment")[0].text.strip,
           }).merge(review_info_proc_lunch_or_dinner["lunch", lunch_rating_item]).
             merge(review_info_proc_lunch_or_dinner["dinner", dinner_rating_item]).
-            merge(review_info_proc_takeout["takeout", takeout_rating_item])
+            merge(review_info_proc_non_detail_sort["takeout", takeout_rating_item]).
+            merge(review_info_proc_non_detail_sort["delivery", delivery_rating_item]).
+            merge(review_info_proc_non_detail_sort["etc", etc_rating_item])
         },
       }
     end
