@@ -241,6 +241,11 @@ pm.add_process(:process_reviews) do |db_operation, error_io, (read_url_with_erro
   end
 end
 
+pm.add_process(:check_db_reviews) do |db_operation, error_io, (read_url_with_error_abort, read_url_with_error_skip)|
+  count_of_no_score_reviews = db_operation.get_count_of_no_score_reviews()
+  $stdout.puts "INFO: count_of_no_score_reviews #{count_of_no_score_reviews}"
+end
+
 File.open(log_filename, "a") do |error_io|
   SQLite3::Database.new(sqlite_filename) do |db|
     db_operation = DbOperation.new(db)
