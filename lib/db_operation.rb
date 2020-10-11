@@ -185,8 +185,8 @@ class DbOperation
     review_hash[:scraped_at] = scraped_at
     insert_or_ignore_to_table(:reviews, review_hash)
   end
-end
 
-def get_count_of_no_score_reviews()
-  @db.execute("SELECT count(*) FROM #{:reviews} WHERE #{:dinner_rating} IS NULL AND #{:lunch_rating} IS NULL AND #{:takeout_rating} IS NULL AND #{:delivery_rating} IS NULL AND #{:etc_rating} IS NULL;").first.first
+  def get_count_of_no_score_reviews()
+    @db.execute("SELECT count(*) FROM #{:reviews} WHERE #{:dinner_rating} IS NULL AND #{:lunch_rating} IS NULL AND #{:takeout_rating} IS NULL AND #{:delivery_rating} IS NULL AND #{:etc_rating} IS NULL;").first.first
+  end
 end
