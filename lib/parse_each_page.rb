@@ -181,6 +181,7 @@ class ParseEachPage
         restaurant: process_single_restaurant_review_page_restaurant_info(doc, source_url, scraped_at),
         review_count: doc.css(".rstdtl-rvwlst .p-list-control .p-list-control__page-count .c-page-count .c-page-count__num strong")[2].text.strip.to_i,
         reviews: entries.map { |entry|
+          review_id = entry.css(".rvw-item__contents .rvw-item__visit-contents .rvw-item__showall-trigger[data-bookmark-id]")[0].attribute("data-bookmark-id").value
           rating_list = entry.css(".rvw-item__rvw-info ul.rvw-item__ratings")[0] # rating_list may be nil
           # e.g. https://tabelog.com/tokyo/A1321/A132103/13022818/dtlrvwlst/?srt=visit&lc=2 > https://tabelog.com/tokyo/A1321/A132103/13022818/dtlrvwlst/B222546607/?use_type=0&srt=visit&lc=2&smp=1
           lunch_rating_item = get_lunch_or_dinner_review_info_list_item[entry, "lunch"]
@@ -188,9 +189,13 @@ class ParseEachPage
           takeout_rating_item = get_lunch_or_dinner_review_info_list_item[entry, "takeout"]
           delivery_rating_item = get_lunch_or_dinner_review_info_list_item[entry, "delivery"]
           etc_rating_item = get_lunch_or_dinner_review_info_list_item[entry, "etc"]
-          raise "neither lunch, dinner, takeout, delivery, nor etc rating item exists on #{source_url}" unless !rating_list || (lunch_rating_item || dinner_rating_item || takeout_rating_item || delivery_rating_item || etc_rating_item)
+          if review_id == "222546607"
+            # rating_list can be null
+          else
+            raise "neither lunch, dinner, takeout, delivery, nor etc rating item exists on #{source_url}" unless lunch_rating_item || dinner_rating_item || takeout_rating_item || delivery_rating_item || etc_rating_item
+          end
           ({
-            review_id: entry.css(".rvw-item__contents .rvw-item__visit-contents .rvw-item__showall-trigger[data-bookmark-id]")[0].attribute("data-bookmark-id").value,
+            review_id: review_id,
             review_url: entry.attribute("data-detail-url").value.split("?")[0],
 
             reviewer: {

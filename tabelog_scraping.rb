@@ -244,6 +244,10 @@ end
 pm.add_process(:check_db_reviews) do |db_operation, error_io, (read_url_with_error_abort, read_url_with_error_skip)|
   count_of_no_score_reviews = db_operation.get_count_of_no_score_reviews()
   $stdout.puts "INFO: count_of_no_score_reviews #{count_of_no_score_reviews}"
+  if count_of_no_score_reviews > 1
+    # if error happens: skip this area
+    error_io.print "ERROR: count_of_no_score_reviews is greater than 1\n"
+  end
 end
 
 File.open(log_filename, "a") do |error_io|
