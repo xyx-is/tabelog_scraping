@@ -200,7 +200,7 @@ class ParseEachPage
 
             reviewer: {
               reviewer_url_path: entry.css(".rvw-item__rvwr-data p.rvw-item__rvwr-name a")[0].attribute("href").value,
-              reviewer_name: entry.css(".rvw-item__rvwr-data p.rvw-item__rvwr-name span[property='v:reviewer']")[0].text.strip,
+              reviewer_name: entry.css(".rvw-item__rvwr-data p.rvw-item__rvwr-name .lev span:first-child")[0].text.strip,
               reviewer_is_mobile_authorized: entry.css(".rvw-item__rvwr-data p.rvw-item__rvwr-name .mark-auth-mobile").any?,
               reviewer_is_celebrity: entry.css(".rvw-item__rvwr-data p.rvw-item__rvwr-name .rvw-item__rvwr-badge .c-badge-celebrity").any?,
               reviewer_profile: entry.css(".rvw-item__rvwr-data p.rvw-item__rvwr-name .rvw-item__rvwr-profile")[0].text.strip,
