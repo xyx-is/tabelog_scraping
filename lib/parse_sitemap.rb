@@ -42,7 +42,7 @@ class ParseSitemap
     ### rstdtl
 
     def select_rstdtl(urls)
-      select_and_sort_by_prefix("https://tabelog.com/sitemap_pc_rstdtl_", urls)
+      select_and_sort_by_prefix("https://tabelog.com/sitemap_pc_rstdtl_", urls).select { |url| !url.start_with?("https://tabelog.com/sitemap_pc_rstdtl_lst_") }
     end
 
     # returns array of restaurant url
