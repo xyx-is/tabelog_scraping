@@ -20,7 +20,6 @@ require_relative "lib/url_util"
 
 MAX_THREADS = 8
 
-
 STDOUT.sync = true
 
 last_update_tuesday = DateUtils.last_update_tuesday(Date.today)
@@ -76,9 +75,8 @@ pm.add_process(:read_sitemap_xml) do |db_operation, error_io, (read_url_with_err
   db_operation.with_transaction do
     Parallel.each(ParseSitemap.select_rstdtl(child_sitemap_urls), in_threads: MAX_THREADS) do |url|
       sitemap_last_modified = nil
-      restaurant_urls = ParseSitemap.parse_rstdtl(
-        read_url.read_xml(url) { |io, url| sitemap_last_modified = io.last_modified }
-      )
+      child_sitemap = read_url_with_error_skip.read_xml(url) { |io, url| sitemap_last_modified = io.last_modified }
+      restaurant_urls = child_sitemap.nil? ? [] : ParseSitemap.parse_rstdtl(child_sitemap)
       restaurant_urls.each do |restaurant_url|
         (prefecture, area1, area2), restaurant_id = UrlUtil.parse_restaurant_url(restaurant_url)
         is_japan = prefectures.include?(prefecture)
