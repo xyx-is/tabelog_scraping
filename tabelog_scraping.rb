@@ -18,7 +18,7 @@ require_relative "lib/progress_manager"
 require_relative "lib/read_url"
 require_relative "lib/url_util"
 
-MAX_THREADS = 8
+MAX_THREADS = 4
 
 STDOUT.sync = true
 
