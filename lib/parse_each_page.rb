@@ -210,7 +210,7 @@ class ParseEachPage
               reviewer_followers_count: entry.css(".rvw-item__rvwr-data .rvw-item__rvwr-balloon-text+strong")[0].text.strip.sub("フォロワー", "").sub("人", "").gsub(",", "").to_i,
             },
 
-            visit_count: entry.css(".rvw-item__rvw-info .rvw-item__visit-count .rvw-item__visit-count-num")[0].text.strip.to_i,
+            visit_count: entry.css(".rvw-item__visit-count-num")[0].text.strip.to_i,
 
             visit_date: entry.css(".rvw-item__contents .rvw-item__visit-contents .rvw-item__date")[0]&.text&.strip,
             has_title: entry.css(".rvw-item__contents .rvw-item__visit-contents .rvw-item__title strong").any?,
